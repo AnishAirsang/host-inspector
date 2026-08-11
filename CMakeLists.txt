@@ -6,4 +6,4 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_compile_options(-Wall -Wextra)
 
-add_executable(host_inspector src/main.cpp)
+add_executable(host_inspector host-inspector/main.cpp)

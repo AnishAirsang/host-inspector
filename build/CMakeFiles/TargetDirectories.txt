@@ -1,3 +1,0 @@
-/home/anish/host-inspector/build/CMakeFiles/host_inspector.dir
-/home/anish/host-inspector/build/CMakeFiles/edit_cache.dir
-/home/anish/host-inspector/build/CMakeFiles/rebuild_cache.dir

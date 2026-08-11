@@ -1,0 +1,1 @@
+/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/host_inspector.dir/link.d CMakeFiles/host_inspector.dir/src/main.cpp.o -o host_inspector

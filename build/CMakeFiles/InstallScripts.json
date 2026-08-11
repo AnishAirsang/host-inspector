@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/anish/host-inspector/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

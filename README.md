@@ -2,19 +2,19 @@
 
 A lightweight C++ utility for Linux that inspects host metrics directly from the `/proc` filesystem.
 
-## What's new in v2.1
+## What's new in v2.2
 
-Version 2.1 continues modularizing the codebase by separating memory metrics extraction out of `main.cpp`:
+Version 2.2 introduces active CPU utilization monitoring alongside existing load averages and memory tracking:
 
-- **Modular Memory Collector**: Memory metrics are now collected through a dedicated `MemoryCollector` class returning a typed `MemoryMetrices` struct.
-- **Unit Conversion Helpers**: `MemoryMetrices` includes inline helper methods (`totalGb()`, `availableGb()`) to convert raw kilobyte values into gigabytes.
-- **Clean Main Coordinator**: `main.cpp` now acts strictly as an orchestrator, delegating metric collection to `CpuCollector` and `MemoryCollector`.
+- **Real-Time CPU Speedometer**: Computes active CPU percentage using a dual-snapshot delta of kernel clock ticks from `/proc/stat` over a 200ms sample window.
+- **Tick Snapshot Architecture**: Encapsulates raw tick parsing into a private `readStatSnapshot()` helper and dedicated `CpuSnapshot` struct, separating user/system/idle tick tracking from the public consumer API.
+- **Unified CPU Metrics Block**: Updated CLI output format grouping instant CPU usage percentage with 1m, 5m, and 15m load averages under a single section.
 
 ## Features
 
-- **CPU Load**: Extracts 1-minute, 5-minute, and 15-minute load averages from `/proc/loadavg`.
-- **Memory Stats**: Reads `MemTotal` and `MemAvailable` from `/proc/meminfo` and calculates active memory utilization percentage.
-- **Zero Dependencies**: Uses standard C++17 streams and RAII file handling without external libraries or background daemons.
+- **CPU Metrics**: Real-time active CPU utilization percentage (`/proc/stat`) and 1m / 5m / 15m load averages (`/proc/loadavg`).
+- **Memory Stats**: Reads `MemTotal` and `MemAvailable` from `/proc/meminfo` and calculates active memory utilization percentage with gigabyte conversion helpers.
+- **Zero Dependencies**: Uses standard C++17 streams, `<thread>`, `<chrono>`, and RAII file handling without external libraries or background daemons.
 
 ## Prerequisites
 
@@ -57,21 +57,23 @@ g++ -std=c++17 -Wall -Wextra host-inspector/*.cpp -o host_inspector
 
 ```text
 =======================================
-     Linux Host Inspector (v2.1)       
+     Linux Host Inspector (v2.2)       
 =======================================
-[+] CPU Load (1m / 5m / 15m):
-    2.03 / 1.17 / 0.56
+[+] CPU Metrics:
+    Usage     : 14.8 %
+    Load avg  : 1.52 / 1.6 / 1.33
 
 [+] RAM / Memory Usage:
     Total     : 6.99786 GB
-    Available : 3.1215 GB
-    Used      : 55.3936 %
+    Available : 2.38596 GB
+    Used      : 65.9044 %
 ```
 
 ## How it works
 
 `host-inspector` reads kernel counters exposed through the Linux `/proc` virtual filesystem:
 
+- `/proc/stat` exposes cumulative CPU clock ticks across execution modes (`user`, `nice`, `system`, `idle`, `iowait`, `irq`, etc.). `CpuCollector::collect()` takes two snapshots separated by a 200ms window (`std::this_thread::sleep_for`), computes total and active delta ticks, and calculates the true utilization percentage.
 - `/proc/loadavg` exposes system load over 1, 5, and 15 minutes. `CpuCollector::collect()` reads this file with `std::ifstream`, stores the values in `CpuMetrices`, and relies on RAII to close the stream handle when execution leaves scope.
 - `/proc/meminfo` exposes kernel memory statistics. `MemoryCollector::collect()` reads `MemTotal:` and `MemAvailable:`, computes used memory and percentage, and returns a populated `MemoryMetrices` struct.
 
@@ -84,7 +86,7 @@ host-inspector/
 ├── .gitignore                     # Git ignore rules
 └── host-inspector/
     ├── cpucollector.hpp           # CPU collector interface and structs
-    ├── cpucollector.cpp           # /proc/loadavg reader implementation
+    ├── cpucollector.cpp           # /proc/loadavg & /proc/stat reader implementation
     ├── memorycollector.hpp        # Memory collector interface and structs
     ├── memorycollector.cpp        # /proc/meminfo reader implementation
     ├── main.cpp                   # Application entry point and coordinator

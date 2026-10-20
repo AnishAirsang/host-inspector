@@ -1,4 +1,4 @@
-#include "memorycollector.hpp" 
+#include "memorycollector.hpp"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -17,7 +17,6 @@ MemoryMetrices MemoryCollector::collect()
     string key;
     uint64_t value = 0;
     string unit;
-
     while (memFile >> key >> value >> unit)
     {
         if (key == "MemTotal:")
@@ -30,7 +29,6 @@ MemoryMetrices MemoryCollector::collect()
         }
     }
 
-    
     if (metrics.totalkb > 0)
     {
         uint64_t usedKb = metrics.totalkb - metrics.availablekb;

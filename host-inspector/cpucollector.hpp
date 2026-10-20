@@ -1,14 +1,23 @@
 #pragma once
+#include <cstdint>
 
-//load -> 1m, 5m, 15m
-
-struct CpuMetrices {
+struct CpuMetrices
+{
     double load1m{0.0};
     double load5m{0.0};
     double load15m{0.0};
+    double usagePercent{0.0}; // <-- NEW: Real-time active CPU percentage
 };
 
+struct CpuSnapshot{
+    uint64_t totalTicks{0};
+    uint64_t idleTicks{0};
+};
 class CpuCollector {
     public:
-    CpuMetrices collect();
-};
+        CpuMetrices collect();
+  
+    private:
+        CpuSnapshot readStatSnapshot();
+    };
+

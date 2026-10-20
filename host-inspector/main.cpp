@@ -7,14 +7,15 @@ using namespace std;
 int main()
 {
     cout << "=======================================\n";
-    cout << "     Linux Host Inspector (v2.1)       \n";
+    cout << "     Linux Host Inspector (v2.2)       \n";
     cout << "=======================================\n";
 
     // 1. CPU Collector
     CpuCollector cpuCol;
     CpuMetrices cpu = cpuCol.collect();
-    cout << "[+] CPU Load (1m / 5m / 15m):\n";
-    cout << "    " << cpu.load1m << " / " << cpu.load5m << " / " << cpu.load15m << "\n\n";
+    cout << "[+] CPU Metrics:\n";
+    cout << "    Usage     : " << cpu.usagePercent << " %\n";
+    cout << "    Load avg  : " << cpu.load1m << " / " << cpu.load5m << " / " << cpu.load15m << "\n\n";
 
     // 2. Memory Collector
     MemoryCollector memCol;
@@ -26,4 +27,3 @@ int main()
 
     return 0;
 }
-

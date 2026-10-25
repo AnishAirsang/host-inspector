@@ -11,14 +11,12 @@ int main()
     cout << "     Linux Host Inspector (v2.3)       \n";
     cout << "=======================================\n";
 
-    // 1. CPU Collector
     CpuCollector cpuCol;
     CpuMetrices cpu = cpuCol.collect();
     cout << "[+] CPU Metrics:\n";
     cout << "    Usage     : " << cpu.usagePercent << " %\n";
     cout << "    Load avg  : " << cpu.load1m << " / " << cpu.load5m << " / " << cpu.load15m << "\n\n";
 
-    // 2. Memory Collector
     MemoryCollector memCol;
     MemoryMetrices mem = memCol.collect();
     cout << "[+] RAM / Memory Usage:\n";
@@ -26,7 +24,6 @@ int main()
     cout << "    Available : " << mem.availableGb() << " GB\n";
     cout << "    Used      : " << mem.usedPercent << " %\n\n";
 
-    // 3. uptimee collector
     UptimeCollector uptimecol;
     uptimemetrices uptime = uptimecol.collect();
     cout << "[+] System Uptime:\n";

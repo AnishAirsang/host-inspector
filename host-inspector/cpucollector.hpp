@@ -6,7 +6,7 @@ struct CpuMetrices
     double load1m{0.0};
     double load5m{0.0};
     double load15m{0.0};
-    double usagePercent{0.0}; // <-- NEW: Real-time active CPU percentage
+    double usagePercent{0.0};
 };
 
 struct CpuSnapshot{

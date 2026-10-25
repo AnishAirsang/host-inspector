@@ -49,7 +49,7 @@ CpuSnapshot CpuCollector::readStatSnapshot()
         return snapshot;
     }
 
-    string label; // To eat the word "cpu"
+    string label;
     uint64_t user{0}, nice{0}, system{0}, idle{0}, iowait{0};
     uint64_t irq{0}, softirq{0}, steal{0};
 

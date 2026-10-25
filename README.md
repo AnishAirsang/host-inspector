@@ -1,52 +1,31 @@
 # host-inspector
 
-A lightweight C++ utility for Linux that inspects host metrics directly from the `/proc` filesystem.
-
-## What's new in v2.2
-
-Version 2.2 introduces active CPU utilization monitoring alongside existing load averages and memory tracking:
-
-- **Real-Time CPU Speedometer**: Computes active CPU percentage using a dual-snapshot delta of kernel clock ticks from `/proc/stat` over a 200ms sample window.
-- **Tick Snapshot Architecture**: Encapsulates raw tick parsing into a private `readStatSnapshot()` helper and dedicated `CpuSnapshot` struct, separating user/system/idle tick tracking from the public consumer API.
-- **Unified CPU Metrics Block**: Updated CLI output format grouping instant CPU usage percentage with 1m, 5m, and 15m load averages under a single section.
+A C++ utility that reads Linux system metrics directly from the `/proc` virtual filesystem.
 
 ## Features
 
-- **CPU Metrics**: Real-time active CPU utilization percentage (`/proc/stat`) and 1m / 5m / 15m load averages (`/proc/loadavg`).
-- **Memory Stats**: Reads `MemTotal` and `MemAvailable` from `/proc/meminfo` and calculates active memory utilization percentage with gigabyte conversion helpers.
-- **Zero Dependencies**: Uses standard C++17 streams, `<thread>`, `<chrono>`, and RAII file handling without external libraries or background daemons.
+- CPU metrics: active utilization percentage calculated across a 200 ms sampling window from `/proc/stat`, plus 1, 5, and 15 minute load averages from `/proc/loadavg`.
+- Memory stats: total, available, and used memory calculated from `/proc/meminfo` with gigabyte conversions.
+- System uptime: elapsed seconds from `/proc/uptime`, converted into days, hours, minutes, and seconds.
+- Standard library only: uses C++17 streams and RAII file handles without external packages.
 
-## Prerequisites
+## Requirements
 
-- Linux OS with `/proc` mounted
+- Linux with `/proc` mounted
 - C++17 compiler (GCC 7+ or Clang 5+)
-- CMake 3.16+ (optional for CMake builds)
+- CMake 3.16+ (optional)
 
 ## Build and run
 
 ### Using CMake
 
 ```bash
-# Configure build directory
 cmake -B build -S .
-
-# Compile
 cmake --build build
-
-# Run the inspector
 ./build/host_inspector
 ```
 
 ### Direct compilation with g++
-
-Compile all source files together:
-
-```bash
-g++ -std=c++17 -Wall -Wextra host-inspector/main.cpp host-inspector/cpucollector.cpp host-inspector/memorycollector.cpp -o host_inspector
-./host_inspector
-```
-
-Or compile with a wildcard:
 
 ```bash
 g++ -std=c++17 -Wall -Wextra host-inspector/*.cpp -o host_inspector
@@ -57,27 +36,32 @@ g++ -std=c++17 -Wall -Wextra host-inspector/*.cpp -o host_inspector
 
 ```text
 =======================================
-     Linux Host Inspector (v2.2)       
+     Linux Host Inspector (v2.3)       
 =======================================
 [+] CPU Metrics:
-    Usage     : 14.8 %
-    Load avg  : 1.52 / 1.6 / 1.33
+    Usage     : 10.3896 %
+    Load avg  : 0.41 / 1.19 / 1.27
 
 [+] RAM / Memory Usage:
-    Total     : 6.99786 GB
-    Available : 2.38596 GB
-    Used      : 65.9044 %
+    Total     : 6.99787 GB
+    Available : 2.71944 GB
+    Used      : 61.139 %
+
+[+] System Uptime:
+Total seconds: 75178.4s
+Formatted: 0d 20h 52m 58s
 ```
 
-## How it works
+## Kernel sources
 
-`host-inspector` reads kernel counters exposed through the Linux `/proc` virtual filesystem:
+The program gathers data through four virtual files:
 
-- `/proc/stat` exposes cumulative CPU clock ticks across execution modes (`user`, `nice`, `system`, `idle`, `iowait`, `irq`, etc.). `CpuCollector::collect()` takes two snapshots separated by a 200ms window (`std::this_thread::sleep_for`), computes total and active delta ticks, and calculates the true utilization percentage.
-- `/proc/loadavg` exposes system load over 1, 5, and 15 minutes. `CpuCollector::collect()` reads this file with `std::ifstream`, stores the values in `CpuMetrices`, and relies on RAII to close the stream handle when execution leaves scope.
-- `/proc/meminfo` exposes kernel memory statistics. `MemoryCollector::collect()` reads `MemTotal:` and `MemAvailable:`, computes used memory and percentage, and returns a populated `MemoryMetrices` struct.
+- `/proc/stat`: sampled twice with a 200 ms sleep between reads. Active CPU percentage is computed by comparing total and idle tick deltas.
+- `/proc/loadavg`: parsed for the 1, 5, and 15 minute system load averages.
+- `/proc/meminfo`: parsed for `MemTotal` and `MemAvailable`. Used memory is derived by subtracting available memory from total memory.
+- `/proc/uptime`: the first field provides total uptime in seconds. Modulo and division convert the raw seconds into days, hours, minutes, and seconds.
 
-## Project structure
+## Project layout
 
 ```text
 host-inspector/
@@ -85,10 +69,12 @@ host-inspector/
 ├── README.md                      # Project documentation
 ├── .gitignore                     # Git ignore rules
 └── host-inspector/
-    ├── cpucollector.hpp           # CPU collector interface and structs
-    ├── cpucollector.cpp           # /proc/loadavg & /proc/stat reader implementation
-    ├── memorycollector.hpp        # Memory collector interface and structs
-    ├── memorycollector.cpp        # /proc/meminfo reader implementation
-    ├── main.cpp                   # Application entry point and coordinator
+    ├── cpucollector.hpp           # CPU collector interface
+    ├── cpucollector.cpp           # /proc/loadavg and /proc/stat parser
+    ├── memorycollector.hpp        # Memory collector interface
+    ├── memorycollector.cpp        # /proc/meminfo parser
+    ├── uptimecollector.hpp        # Uptime collector interface
+    ├── uptimecollector.cpp        # /proc/uptime parser
+    ├── main.cpp                   # Entry point and terminal output
     └── prac.md                    # Architecture and practice notes
 ```

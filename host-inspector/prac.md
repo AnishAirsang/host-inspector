@@ -123,3 +123,18 @@ Because cpucollector.cpp was not in the command, the linker could not find the c
 The fix:
 Compile all .cpp files together:
 g++ -std=c++17 -Wall -Wextra *.cpp -o main && ./main
+
+
+//colors
+ANSI 
+So they star with special characaters, Escape Characters \033 -> octal
+\x1B -> hex followed by [
+
+    * \033[32m -> text to green
+    yellow is 33m
+    red is 31m 
+    0m is reset that is they are normal text;
+
+    void is a fxn that dosentt returny anything.
+    
+
